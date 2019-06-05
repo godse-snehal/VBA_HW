@@ -1,0 +1,71 @@
+Sub WorksheetLoop()
+
+    Dim Current As Worksheet
+
+    For Each Current In Worksheets
+        
+        Dim Last_Row As Long
+        Last_Row = Current.Cells(Rows.Count, 1).End(xlUp).Row
+    
+        Current.Cells(1, 9).Value = "Ticker"
+        Current.Cells(1, 10).Value = "Yearly Change"
+        Current.Cells(1, 11).Value = "Percent Change"
+        Current.Cells(1, 12).Value = "Total Stock Volume"
+        Current.Cells(2, 15).Value = "Greatest % Increase"
+        Current.Cells(3, 15).Value = "Greatest % Decrease"
+        Current.Cells(4, 15).Value = "Greatest Total Volume"
+        Current.Cells(1, 16).Value = "Value"
+    
+        Dim Ticker_Value As String, Total_Volume As Double, Yearly_Change As Double, Percent_Change As Double
+        Dim Opening_Stock_Price As Double, Closing_Stock_Price As Double
+    
+        Dim Output_Last_Row As Integer
+        Output_Last_Row = Current.Cells(Rows.Count, "I").End(xlUp).Row + 1
+    
+        Dim i As Long
+    
+        For i = 2 To Last_Row - 1
+        
+            If (Current.Range("A" & i).Value = Current.Range("A" & i + 1).Value) Then
+                Ticker_Value = Current.Range("A" & i).Value
+                Total_Volume = Current.Range("G" & i).Value + Total_Volume
+                If (CDbl(Current.Range("C" & i).Value) <> 0# And Opening_Stock_Price = 0#) Then
+                    Opening_Stock_Price = Current.Range("C" & i).Value
+    
+                End If
+            Else
+                Total_Volume = Current.Range("G" & i).Value + Total_Volume
+                Closing_Stock_Price = Current.Range("F" & i).Value
+                Yearly_Change = Closing_Stock_Price - Opening_Stock_Price
+                Percent_Change = Yearly_Change / Opening_Stock_Price
+                Current.Range("I" & Output_Last_Row).Value = Ticker_Value
+                Current.Range("J" & Output_Last_Row).Value = Str(Yearly_Change)
+                Current.Range("K" & Output_Last_Row).Value = FormatPercent(Percent_Change, 2)
+                Current.Range("L" & Output_Last_Row).Value = Total_Volume
+                Output_Last_Row = Output_Last_Row + 1
+                Total_Volume = 0#
+                Opening_Stock_Price = 0#
+                Closing_Stock_Price = 0#
+            End If
+    
+        Next i
+        
+        Dim percent_rng As Range
+        Dim volume_rng As Range
+        Dim max_percent As Double, min_percent As Double, max_row As Long
+        Set percent_rng = Current.Range("K2" & ":" & "K" & Output_Last_Row)
+        
+        Dim max_volume As Double
+        Set volume_rng = Current.Range("L2" & ":" & "L" & Output_Last_Row)
+        
+        max_percent = Application.WorksheetFunction.Max(percent_rng)
+        min_percent = Application.WorksheetFunction.Min(percent_rng)
+        max_volume = Application.WorksheetFunction.Max(volume_rng)
+        
+        Current.Range("P2").Value = FormatPercent(max_percent, 2)
+        Current.Range("P3").Value = FormatPercent(min_percent, 2)
+        Current.Range("P4").Value = max_volume
+        
+   Next
+     
+End Sub
